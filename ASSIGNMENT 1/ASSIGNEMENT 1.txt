@@ -1,0 +1,778 @@
+CSA08 – PYTHON PROGRAMMING
+ASSIGNMENT 1
+Payment Calculator for a Village Milk Co-operative
+Student Name
+Register Number
+Course
+Assignment
+VIJAY SANKAR D
+1972260080
+CSA08 – Python Programming
+1 – Payment Calculator
+Total Marks
+50
+Ksheera Village Milk Producers’ Co-operative
+Python implementation, analysis, validation and design challenge
+Page 1
+CSA08 – Assignment 1 | VIJAYSANKAR D | 1972260080
+Assignment Overview
+This report follows the supplied assignment brief. It covers Tasks 1–12, including Python concepts, calculations,
+functions, modules, algorithms, testing, benchmarking and the seasonal-rate design challenge.
+Scenario and rate rules
+• Standard rate: Rs. 30.00 per litre at 3.5% fat and 8.5% SNF.
+• Every 0.1% fat step above or below 3.5% changes the rate by Rs. 0.40.
+• Every 0.1% SNF step above or below 8.5% changes the rate by Rs. 0.30.
+• Farmers are paid every ten days.
+The assignment specifies fat validation from 2.0% to 7.0%. SNF is treated as a positive numeric value in this solution; any
+additional operational SNF limits should be confirmed by the co-operative.
+TASK 1: Understand the Problem and Identify the Data (4 Marks)
+Inputs and outputs
+Value
+Type
+Farmer ID
+Litres
+String
+Decimal / numeric
+Purpose
+Identifies the farmer uniquely.
+Stores milk quantity; must be greater than
+zero.
+Fat %
+SNF %
+Shift
+Decimal / numeric
+Decimal / numeric
+String
+Used to calculate fat adjustment.
+Used to calculate SNF adjustment.
+Identifies Morning or Evening collection.
+Output
+Rate per litre
+Purpose
+Price of one litre after fat and SNF adjustments.
+Amount
+Ten-day total
+Named constants
+BASE_RATE = 30.00
+FAT_STANDARD = 3.5
+SNF_STANDARD = 8.5
+FAT_STEP_VALUE = 0.40
+SNF_STEP_VALUE = 0.30
+FAT_STEP = 0.1
+SNF_STEP = 0.1
+MIN_FAT = 2.0
+MAX_FAT = 7.0
+Validation rules and assumptions
+Litres multiplied by the rate.
+Sum of the farmer’s accepted payments over ten days.
+• Farmer ID must not be empty and should identify the farmer.
+• Milk quantity must be greater than zero; negative and zero quantities are rejected.
+• Fat must be between 2.0% and 7.0%, inclusive.
+• SNF must be a valid positive number.
+• Shift must be Morning or Evening.
+• Money is rounded to two decimal places; invalid entries are not included in totals.
+• Each valid collection entry is treated as a separate transaction. Ten-day totals are grouped by farmer.
+Alternative concept and complexity
+Page 2
+CSA08 – Assignment 1 | Rajavignesh .M | 1965260138
+Separate variables such as litres1, fat1, snf1, litres2, fat2 and snf2 become difficult to maintain for hundreds of farmers. A
+list of tuples or records keeps each farmer’s values together.
+entries = [
+    (10, 3.5, 8.5),
+    (8, 4.2, 8.7),
+    (12, 3.1, 8.3)
+]
+Both approaches require O(n) processing time and O(n) storage when all n entries are retained. Lists scale better
+because records can be added and processed in loops without creating new variable names.
+TASK 2: Explore Values and Types in the Interpreter (4 Marks)
+Types and arithmetic operators
+>>> type(10)
+<class 'int'>
+>>> type(10.0)
+<class 'float'>
+>>> type("10")
+<class 'str'>
+>>> type(True)
+<class 'bool'>
+>>> type([10, 8.5])
+<class 'list'>
+>>> 7 / 2
+3.5
+>>> 7 // 2
+3
+>>> 7 % 2
+1
+>>> -7 // 2-4
+>>> 0.1 + 0.2 == 0.3
+False
+The slash operator performs true division; double slash performs floor division; percent returns the remainder. Floor
+division rounds toward negative infinity, so -7 // 2 is -4.
+Floating-point issue and Decimal solution
+Binary floating-point cannot represent some decimal fractions exactly. For financial values, create Decimal values from
+strings, not from floats.
+from decimal import Decimal
+payments = ["33.40"] * 1000 + ["0.10"] * 3
+def total_float(items):
+    total = 0.0
+    for amount in items:
+        total += float(amount)
+    return total
+def total_decimal(items):
+    total = Decimal("0.00")
+    for amount in items:
+        total += Decimal(amount)
+    return total
+print("float :", total_float(payments))
+print("Decimal:", total_decimal(payments))
+print(0.1 + 0.2 == 0.3,
+      Decimal("0.1") + Decimal("0.2") == Decimal("0.3"))
+Expected output:
+float : 33400.30000000061
+Decimal: 33400.30
+False True
+Changing Decimal(amount) to Decimal(float(amount)) imports the float’s binary approximation into Decimal. The result
+therefore contains extra digits and is not the exact decimal total.
+Alternative methods and complexity
+Page 3
+CSA08 – Assignment 1 | Rajavignesh .M | 1965260138
+Method
+float
+Accuracy for money
+Approximate
+Cost per addition
+O(1)
+Decimal from strings
+Integer paise
+amount1 = 3340  # paise
+amount2 = 10
+Exact decimal representation and
+arithmetic
+Exact to one paisa
+total = amount1 + amount2
+print(total)  # 3350 paise
+print(f"Rs. {total / 100:.2f}")  # Rs. 33.50
+O(1) for this analysis
+O(1)
+round() applied repeatedly to float values does not guarantee exact bank totals. Integer paise is exact when the
+accounting unit is one paisa; Decimal is suitable where decimal quantities and explicit rounding are required.
+TASK 3: Choose Variables and Name the Constants (3 Marks)
+Use meaningful snake_case names for variables and UPPER_CASE names for constants. Python does not enforce true
+constants; uppercase is a convention that tells programmers not to reassign them.
+BASE_RATE = 30.00
+FAT_STEP_VALUE = 0.40
+SNF_STEP_VALUE = 0.30
+FAT_STANDARD = 3.5
+SNF_STANDARD = 8.5
+farmer_id = "F101"
+litres = 10.5
+fat = 4.2
+snf = 8.7
+shift = "Morning"
+value = 100
+print(type(value))
+value = "Milk"
+print(type(value))
+a, b = 10, 20
+a, b = b, a
+print(a, b)  # 20 10
+Alternative concept
+RATE_CARD = {
+    "base": 30.00,
+    "fat": 0.40,
+    "snf": 0.30
+}
+Magic numbers must be changed in every occurrence (k places). Named constants or a dictionary centralise the revision.
+For a fixed-size rate card, lookup and storage are O(1); the main benefit is maintainability, not a meaningful runtime
+improvement.
+TASK 4: Write Correct Expressions (4 Marks)
+Formula
+FatSteps = round((fat - 3.5) / 0.1); SNFSteps = round((snf - 8.5) / 0.1).
+Rate = 30 + (FatSteps × 0.40) + (SNFSteps × 0.30). Amount = litres × Rate, rounded to two decimal places.
+fat = 4.2
+snf = 8.7
+litres = 8.5
+fat_steps = round((fat - 3.5) / 0.1)
+snf_steps = round((snf - 8.5) / 0.1)
+rate = 30 + fat_steps * 0.40 + snf_steps * 0.30
+amount = round(litres * rate, 2)
+print(fat_steps, snf_steps, rate, amount)
+Page 4
+CSA08 – Assignment 1 | Rajavignesh .M | 1965260138
+Output: 7 2 33.4 283.9
+Precedence and surprising results
+print(2 + 3 * 4)       # 14
+print((2 + 3) * 4)     # 20
+print(2 ** 3)          # 8
+print(-2 ** 2)         # -4
+print((4.2 - 3.5) / 0.1)  # 7.000000000000001
+print(0.1 + 0.2)       # 0.30000000000000004
+Parentheses are evaluated first, then exponentiation, unary operators, multiplication/division and addition/subtraction. In-2 ** 2, exponentiation occurs before the unary minus.
+round(), int() and floor()
+import math
+print(round(-3.7))    # -4
+print(int(-3.7))      # -3
+print(math.floor(-3.7))  # -4
+steps = (3.1 - 3.5) / 0.1
+print(round(steps))       # -4
+print(int(steps))         # -3
+print(math.floor(steps))  # -4
+For fat 4.2, the step count is 7 under all three methods. For fat 3.1, round() and floor() give -4 while int() truncates toward
+zero and gives -3. With SNF at standard, the resulting rates are Rs. 32.80 for fat 4.2 and Rs. 28.40 for fat 3.1 using
+round()/floor(), versus Rs. 28.80 using int() for fat 3.1. Use nearest-step rounding as specified. Comparison chaining such
+as 2.0 <= fat <= 7.0 checks both limits. Each calculation is O(1) time and O(1) space.
+TASK 5: Read Input and Convert Types (3 Marks)
+input() always returns a string. Convert numeric text using int() or float(), or Decimal() for accurate decimal inputs.
+def read_number(message):
+    while True:
+        try:
+            return float(input(message))
+        except ValueError:
+            print("Invalid input! Enter a valid number.")
+litres = read_number("Enter litres: ")
+fat = read_number("Enter fat: ")
+snf = read_number("Enter SNF: ")
+print("Litres:", litres)
+print("Fat:", fat)
+print("SNF:", snf)
+Example: if the user enters 'eight', the program prints an error and asks again. float('8,5') and float('eight') raise
+ValueError; float(' 8.5 ') is accepted.
+farmer_id = "F101"
+amount = 283.9
+print(f"{farmer_id:<10} {amount:8.2f}")
+Formatted output aligns the farmer ID and prints the amount with two decimal places. String pre-checking is possible, but
+try/except handles the actual conversion rules more clearly. Both methods are approximately O(1) per ordinary short
+input.
+TASK 6: Organise the Logic into Functions (4 Marks)
+Use rate_per_litre(fat, snf) to return the rate, payout(litres, fat, snf) to return one payment, and ten_day_total(payments)
+to return the sum. return passes a value back; print displays it. Functions can read global constants without modifying
+them; local variables exist only within their function.
+BASE_RATE = 30.00
+FAT_STEP_VALUE = 0.40
+SNF_STEP_VALUE = 0.30
+def rate_per_litre(fat, snf):
+    """Calculate the price per litre."""
+    fat_steps = round((fat - 3.5) / 0.1)
+    snf_steps = round((snf - 8.5) / 0.1)
+Page 5
+CSA08 – Assignment 1 | Rajavignesh .M | 1965260138
+    return round(BASE_RATE + fat_steps * FAT_STEP_VALUE
+                 + snf_steps * SNF_STEP_VALUE, 2)
+def payout(litres, fat, snf):
+    """Calculate payment for a milk entry."""
+    return round(litres * rate_per_litre(fat, snf), 2)
+def ten_day_total(payments):
+    """Calculate the ten-day payment total."""
+    return round(sum(payments), 2)
+payments = [
+    payout(10, 3.5, 8.5),
+    payout(8.5, 4.2, 8.7),
+    payout(12, 3.1, 8.3)
+]
+print(payments)
+print(ten_day_total(payments))
+Output: [300.0, 283.9, 333.6] and 917.5. A long script duplicates logic; functions improve reuse and testing. Lambda is
+suitable for short expressions, not the main multi-step payment logic. Processing n entries is O(n); function-call overhead
+is generally small.
+TASK 7: Build a Module (4 Marks)
+Save the following as milkrate.py. The main guard makes the sample table run only when the file is executed directly, not
+when imported.
+"""Rate card of the village milk co-operative."""
+BASE_RATE = 30.00
+FAT_STEP_VALUE = 0.40
+SNF_STEP_VALUE = 0.30
+def rate_per_litre(fat, snf):
+    """Returns the price per litre, rounded to 2 decimals."""
+    fat_steps = round((fat - 3.5) / 0.1)
+    snf_steps = round((snf - 8.5) / 0.1)
+    rate = BASE_RATE + fat_steps * FAT_STEP_VALUE + snf_steps * SNF_STEP_VALUE
+    return round(rate, 2)
+def payout(litres, fat, snf):
+    """Returns the amount payable to the farmer."""
+    return round(litres * rate_per_litre(fat, snf), 2)
+if __name__ == "__main__":
+    for litres, fat, snf in [
+        (10, 3.5, 8.5), (8.5, 4.2, 8.7), (12, 3.1, 8.3)
+    ]:
+        rate = rate_per_litre(fat, snf)
+        pay = payout(litres, fat, snf)
+        print(f"{litres:5} L fat {fat} snf {snf} rate {rate:6.2f} pay {pay:8.2f}")
+Expected values: 10 L fi rate 30.00, pay 300.00; 8.5 L fi rate 33.40, pay 283.90; 12 L fi rate 27.80, pay 333.60.
+Second file: main.py
+import milkrate
+litres, fat, snf = 10, 4.2, 8.7
+rate = milkrate.rate_per_litre(fat, snf)
+amount = milkrate.payout(litres, fat, snf)
+print("Rate per litre:", rate)
+print("Total payment:", amount)
+Output: Rate per litre: 33.4; Total payment: 334.0. Import styles include import milkrate, from milkrate import payout, and
+import milkrate as mr. Python searches the current directory and sys.path; imported modules are cached in sys.modules.
+Copying functions into every script makes rate revisions harder; a shared module centralises them.
+TASK 8: Plan the Algorithm Before Coding (4 Marks)
+Algorithmic steps
+Understand the problem, identify inputs and outputs, plan the formula, write pseudocode, draw a flowchart, code the
+solution and test it.
+Pseudocode: one payment
+ALGORITHM CalculatePayment
+START
+    INPUT farmer_id
+    INPUT litres
+    INPUT fat
+    INPUT snf
+    IF litres <= 0 THEN
+        OUTPUT "Invalid quantity"
+    ELSE IF fat < 2.0 OR fat > 7.0 THEN
+        OUTPUT "Invalid fat percentage"
+    ELSE IF snf <= 0 THEN
+        OUTPUT "Invalid SNF percentage"
+    ELSE
+        SET fat_steps TO nearest whole fat step
+        SET snf_steps TO nearest whole SNF step
+        SET rate TO 30 + fat_steps * 0.40 + snf_steps * 0.30
+        SET amount TO litres * rate
+        OUTPUT rate
+        OUTPUT amount
+    ENDIF
+END
+Pseudocode: ten-day total
+ALGORITHM TenDayTotal
+START
+    SET total TO 0
+    FOR each entry IN entries
+        IF entry is valid THEN
+            CALCULATE payment
+            SET total TO total + payment
+        ELSE
+            OUTPUT "Invalid entry"
+        ENDIF
+    ENDFOR
+    OUTPUT total
+END
+Flowchart
+START
+  |
+Input farmer ID, litres, fat, SNF
+  |
+Litres > 0? --No--> Invalid quantity --> END
+  |
+ Yes
+  |
+Fat between 2 and 7? --No--> Invalid fat --> END
+  |
+ Yes
+  |
+SNF valid? --No--> Invalid SNF --> END
+  |
+ Yes
+  |
+Calculate steps, rate and payment
+  |
+Display payment
+  |
+ END
+Hand trace
+Farmer
+Litres
+Fat
+SNF
+Rate
+Payment
+F101
+F102
+F103
+10
+8.5
+12
+3.5
+4.2
+3.1
+8.5
+8.7
+8.3
+30.00
+33.40
+27.80
+300.00
+283.90
+333.60
+Page 7
+CSA08 – Assignment 1 | Rajavignesh .M | 1965260138
+Total = Rs. 300.00 + Rs. 283.90 + Rs. 333.60 = Rs. 917.50. Storing all entries requires O(n) time and O(n) extra space. A
+running total takes O(n) time and O(1) extra space, but storing records is useful for audit history, corrections and
+individual reports.
+TASK 9: Implement and Test the Calculator (4 Marks)
+The following complete program uses Decimal from strings, validates quantity/fat/SNF and adds each rounded payment
+to the ten-day total.
+from decimal import Decimal, ROUND_HALF_UP
+BASE_RATE = Decimal("30.00")
+FAT_STANDARD = Decimal("3.5")
+SNF_STANDARD = Decimal("8.5")
+FAT_STEP_VALUE = Decimal("0.40")
+SNF_STEP_VALUE = Decimal("0.30")
+STEP = Decimal("0.1")
+MIN_FAT = Decimal("2.0")
+MAX_FAT = Decimal("7.0")
+def money(value):
+    """Round a monetary value to two decimal places."""
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+def calculate_rate(fat, snf):
+    """Calculate the milk rate per litre."""
+    fat_steps = ((fat - FAT_STANDARD) / STEP).quantize(
+        Decimal("1"), rounding=ROUND_HALF_UP)
+    snf_steps = ((snf - SNF_STANDARD) / STEP).quantize(
+        Decimal("1"), rounding=ROUND_HALF_UP)
+    rate = BASE_RATE + fat_steps * FAT_STEP_VALUE + snf_steps * SNF_STEP_VALUE
+    return money(rate)
+def calculate_payment(litres, fat, snf):
+    """Calculate payment for a valid milk entry."""
+    return money(litres * calculate_rate(fat, snf))
+def validate_entry(litres, fat, snf):
+    """Validate the farmer's milk entry."""
+    return (litres > 0 and MIN_FAT <= fat <= MAX_FAT and snf > 0)
+def main():
+    total = Decimal("0.00")
+    n = int(input("Enter number of farmers: "))
+    for i in range(n):
+        print("\\nFarmer", i + 1)
+        farmer_id = input("Enter Farmer ID: ")
+        litres = Decimal(input("Enter Litres: "))
+        fat = Decimal(input("Enter Fat: "))
+        snf = Decimal(input("Enter SNF: "))
+        if validate_entry(litres, fat, snf):
+            rate = calculate_rate(fat, snf)
+            amount = calculate_payment(litres, fat, snf)
+            total += amount
+            print("Farmer ID:", farmer_id)
+            print("Rate per litre:", rate)
+            print("Payment:", amount)
+        else:
+            print("Invalid entry. Payment not calculated.")
+    print("\\nTen-Day Total:", money(total))
+if __name__ == "__main__":
+    main()
+Sample input
+3
+F101
+10
+3.5
+8.5
+F102
+8.5
+4.2
+8.7
+F103
+12
+Page 8
+
+3.1
+8.3
+Expected payments: F101 Rs. 300.00; F102 Rs. 283.90; F103 Rs. 333.60. Ten-day total: Rs. 917.50.
+Test table
+Test Input Expected result
+Standard 10 L, fat 3.5, SNF 8.5 Rs. 300.00
+Fat above 10 L, fat 4.2, SNF 8.5 Rs. 328.00
+Fat below 10 L, fat 3.1, SNF 8.5 Rs. 284.00
+SNF above 10 L, fat 3.5, SNF 8.7 Rs. 306.00
+SNF below 10 L, fat 3.5, SNF 8.3 Rs. 294.00
+Minimum fat 10 L, fat 2.0, SNF 8.5 Rs. 240.00
+Maximum fat 10 L, fat 7.0, SNF 8.5 Rs. 440.00
+Zero/negative litres 0 or -5 L Invalid
+Invalid fat fat 8.0 Invalid
+Text eight Conversion error; handle and prompt
+again
+Five-entry manual test
+Farmer Litres Fat SNF Amount
+F101 10 3.5 8.5 300.00
+F102 8.5 4.2 8.7 283.90
+F103 12 3.1 8.3 333.60
+F104 5 3.5 8.5 150.00
+F105 10 4.0 8.5 320.00
+Five-entry total = Rs. 1,387.50.
+assert calculate_payment(
+    Decimal("10"), Decimal("3.5"), Decimal("8.5")
+) == Decimal("300.00")
+assert calculate_payment(
+    Decimal("10"), Decimal("4.2"), Decimal("8.5")
+) == Decimal("328.00")
+assert validate_entry(
+    Decimal("10"), Decimal("8.0"), Decimal("8.5")
+) is False
+print("All tests passed")
+Automated assert tests are repeatable and can be rerun after every change. Manual testing is useful for exploratory
+checks but takes longer as the test set grows.
+TASK 10: Compare Expectations with Execution (4 Marks)
+This benchmark compares float and Decimal totals for 300, 6,000 and 150,000 payments. Run it on the submission
+computer and record the measured times; timings vary by hardware and Python version.
+from decimal import Decimal
+import time
+def float_total(n):
+    total = 0.0
+    for _ in range(n):
+        total += 33.40
+    return total
+def decimal_total(n):
+    total = Decimal("0.00")
+    for _ in range(n):
+        total += Decimal("33.40")
+    return total
+for n in [300, 6000, 150000]:
+    start = time.perf_counter()
+    f_total = float_total(n)
+    float_time = time.perf_counter() - start
+    start = time.perf_counter()
+    d_total = decimal_total(n)
+    decimal_time = time.perf_counter() - start
+    print("Payments:", n)
+    print("Float total:", f_total)
+    print("Decimal total:", d_total)
+    print("Float time:", float_time)
+    print("Decimal time:", decimal_time)
+Payments
+Payment each
+300
+Rs. 33.40
+Exact Decimal total
+Rs. 10,020.00
+6,000
+150,000
+Rs. 33.40
+Rs. 33.40
+Rs. 200,400.00
+Rs. 5,010,000.00
+Do not invent timing measurements: copy the actual output from time.perf_counter() into the report. Decimal totals should
+agree with the exact mathematical total when values are created from decimal strings.
+Rounding policy example
+from decimal import Decimal, ROUND_HALF_UP
+payments = [Decimal("33.405")] * 3
+each_rounded = sum(
+    p.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    for p in payments
+)
+total_rounded = sum(payments).quantize(
+    Decimal("0.01"), rounding=ROUND_HALF_UP
+)
+print(each_rounded)  # 100.23
+print(total_rounded) # 100.22
+Rounding each transaction differs from rounding only the final sum. The co-operative must define the approved
+accounting policy and apply it consistently. This assignment’s main calculator rounds each farmer payment to paisa
+before adding it to the ten-day total.
+Rate lookup alternative
+rate_table = {
+    (3.5, 8.5): 30.00,
+    (4.2, 8.7): 33.40,
+    (3.1, 8.3): 27.80
+}
+print(rate_table[(4.2, 8.7)])  # 33.4
+A dictionary gives average O(1) lookup and uses O(k) storage for k distinct fat/SNF pairs. Recalculation is also O(1) per
+entry, so lookup is useful mainly when many readings repeat and the table can be managed reliably.
+TASK 11: Recommend and Defend the Final Design (4 Marks)
+Recommended data types
+Data
+Recommended type
+Farmer ID
+str
+Reason
+Identification text.
+Litres
+Decimal
+Preserves decimal quantity.
+Page 10
+Fat and SNF
+Recommended type
+Decimal
+Reason
+Preserves analyser readings.
+Rate and payment
+Ten-day total
+Rounding
+Decimal
+Decimal
+from decimal import Decimal, ROUND_HALF_UP
+amount = Decimal("283.905")
+amount = amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+print(amount)  # 283.91
+Accurate decimal money arithmetic.
+Accurate aggregation.
+Use an explicitly approved rounding rule, such as ROUND_HALF_UP, and apply it consistently. Keep rate values in one
+central configuration.
+Rate revision and limitations
+• Change the rate card in one central module or configuration file.
+• Maintain backups and transaction records.
+• The basic assignment program does not itself connect to an automatic analyser or bank.
+• A district-scale production system needs a database, authentication, audit logs, backup/recovery and centralised rate
+management.
+• Performance and correctness should be verified with realistic load tests at 150,000-farmer scale.
+Alternative: JSON rate file
+{
+}
+    "base_rate": "30.00",
+    "fat_step_value": "0.40",
+    "snf_step_value": "0.30"
+import json
+from decimal import Decimal
+with open("rates.json", "r") as file:
+    rate_card = json.load(file)
+BASE_RATE = Decimal(rate_card["base_rate"])
+FAT_STEP_VALUE = Decimal(rate_card["fat_step_value"])
+SNF_STEP_VALUE = Decimal(rate_card["snf_step_value"])
+print(BASE_RATE, FAT_STEP_VALUE, SNF_STEP_VALUE)
+Loading a configuration with k values takes O(k) time and O(k) space. It makes rate revisions easier without editing and
+redistributing the Python source. The recommended design is Decimal-based calculations, reusable functions, a separate
+module and an externally managed rate card.
+TASK 12: Re-evaluate and Adapt the Design (8 Marks)
+A. Impact analysis (2 Marks)
+The analyser now supplies fat and SNF to two decimal places. April, May and June use a base rate of Rs. 32.00 and
+fat-step value Rs. 0.45; other months use the original Rs. 30.00 and Rs. 0.40. SNF remains Rs. 0.30. If total ten-day
+supply exceeds 500 litres, the bonus is Rs. 0.50 per litre on all litres; exactly 500 litres receives no bonus.
+A two-decimal reading can produce fractional 0.1% steps. The worked examples below use ROUND_HALF_UP to the
+nearest whole step. This is an explicit policy assumption that should be confirmed with the co-operative.
+B. Evaluate the original design (2 Marks)
+Example: fat 4.25%, SNF 8.63%. Fat difference is 0.75%, or 7.5 steps, rounded half-up to 8. SNF difference is 0.13%, or
+1.3 steps, rounded to 1.
+Page 11
+
+Season
+April–June
+Calculation
+32 + 8×0.45 + 1×0.30
+Rate
+10 L payment
+35.90
+Other months
+30 + 8×0.40 + 1×0.30
+33.50
+359.00
+335.00
+The original functions and module remain useful, but must accept a month/season and support two-decimal analyser
+values and a separate ten-day bonus. The design should be modified rather than replaced.
+C. Adapted Python implementation (2 Marks)
+from decimal import Decimal, ROUND_HALF_UP
+STEP = Decimal("0.1")
+FAT_STANDARD = Decimal("3.5")
+SNF_STANDARD = Decimal("8.5")
+BONUS_RATE = Decimal("0.50")
+ORIGINAL_RATE = {
+    "base": Decimal("30.00"),
+    "fat": Decimal("0.40"),
+    "snf": Decimal("0.30")
+}
+SEASONAL_RATE = {
+    "base": Decimal("32.00"),
+    "fat": Decimal("0.45"),
+    "snf": Decimal("0.30")
+}
+def money(value):
+    """Round money to two decimal places."""
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+def get_rate_card(month):
+    """Select the rate card based on the month."""
+    if month in (4, 5, 6):
+        return SEASONAL_RATE
+    return ORIGINAL_RATE
+def calculate_rate(fat, snf, month):
+    """Calculate the rate using the selected seasonal card."""
+    card = get_rate_card(month)
+    fat_steps = ((fat - FAT_STANDARD) / STEP).quantize(
+        Decimal("1"), rounding=ROUND_HALF_UP)
+    snf_steps = ((snf - SNF_STANDARD) / STEP).quantize(
+        Decimal("1"), rounding=ROUND_HALF_UP)
+    rate = (card["base"] + fat_steps * card["fat"]
+            + snf_steps * card["snf"])
+    return money(rate)
+def calculate_payment(litres, fat, snf, month):
+    """Calculate payment for one milk entry."""
+    return money(litres * calculate_rate(fat, snf, month))
+def calculate_bonus(total_litres):
+    """Pay bonus on all litres only when total exceeds 500."""
+    if total_litres > Decimal("500"):
+        return money(total_litres * BONUS_RATE)
+    return Decimal("0.00")
+def ten_day_total(entries, month):
+    """Return litres, milk payment, bonus and final total."""
+    total_litres = sum((e[0] for e in entries), Decimal("0"))
+    milk_payment = sum(
+        (calculate_payment(l, f, s, month) for l, f, s in entries),
+        Decimal("0")
+    )
+    bonus = calculate_bonus(total_litres)
+    return (total_litres, money(milk_payment), bonus,
+            money(milk_payment + bonus))
+entries = [
+    (Decimal("250"), Decimal("4.25"), Decimal("8.63")),
+    (Decimal("251"), Decimal("4.25"), Decimal("8.63"))
+]
+for month in (4, 7):
+    litres, payment, bonus, total = ten_day_total(entries, month)
+Page 12
+CSA08 – Assignment 1 | Rajavignesh .M | 1965260138
+    print("Month:", month)
+    print("Total Litres:", litres)
+    print("Milk Payment:", payment)
+    print("Bonus:", bonus)
+    print("Final Total:", total)
+Expected output:
+Month: 4
+Total Litres: 501
+Milk Payment: 17985.90
+Bonus: 250.50
+Final Total: 18236.40
+Month: 7
+Total Litres: 501
+Milk Payment: 16783.50
+Bonus: 250.50
+Final Total: 17034.00
+Note: These figures assume the same 4.25% fat and 8.63% SNF readings for both 250 L and 251 L entries, with the
+rounded step policy described above.
+D. Evidence-based defence (2 Marks)
+Ten-day litres
+Bonus rate
+400
+500
+Rs. 0.50/L
+Rs. 0.50/L
+Bonus
+Rs. 0.00
+Rs. 0.00
+501
+600
+Rs. 0.50/L
+Rs. 0.50/L
+Rs. 250.50
+Rs. 300.00
+Month
+April
+Base
+32.00
+Fat steps
+8
+SNF steps
+1
+Rate
+35.90
+May
+June
+July
+32.00
+32.00
+30.00
+8
+8
+8
+1
+1
+1
+35.90
+35.90
+33.50
+The modified design reuses the original functions and module while adding a rate-card selector and a separate bonus
+function. It supports seasonal revisions and analyser readings without duplicating the core payment logic. The
+co-operative must approve the fractional-step rounding policy and retain auditable ten-day farmer records.
+Submission Checklist
+• Create GitHub repository: CSA08-1965260138-Assignment1.
+• Create one folder for each task (Task01 through Task12).
+• Save the Python source files and any input files in the relevant folders.
+• Execute every task and capture output screenshots.
+• Record actual Task 10 timings from your own computer.
+• Include README.md with student name, register number, Python version, libraries and run commands.
+• Include requirements.txt; this assignment uses only Python standard-library modules.
+• Commit progressively, with at least one commit for each task.
+• Put the working GitHub link on the report cover page and submit it on the portal.
